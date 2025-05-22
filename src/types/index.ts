@@ -39,4 +39,20 @@ export interface Client {
   channels?: Channel[];
 }
 
+export type SentimentType = 'positive' | 'negative' | 'neutral' | 'unclassified';
+
+export interface Mention {
+  id: string;
+  clientId: string;
+  clientName: string; // Denormalized for easier display
+  keywordDetected: string;
+  channelName: string;
+  channelId: string;
+  messageSnippet: string; // A short snippet of the message
+  messageLink: string; // Direct link to the Telegram message
+  detectedAt: Date;
+  sentiment: SentimentType;
+  isReviewed: boolean;
+}
+
 // Add more types as needed
