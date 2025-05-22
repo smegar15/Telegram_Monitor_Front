@@ -15,8 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -28,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Card } from '@/components/ui/card'; // Added Card import
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { AnalystUser } from '@/types';
 import AnalystUserForm, { AnalystUserFormData } from '@/components/admin/AnalystUserForm';
