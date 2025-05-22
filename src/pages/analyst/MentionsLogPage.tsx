@@ -98,24 +98,25 @@ const sentimentBadgeVariant = (sentiment: SentimentType) => {
   }
 };
 
+const ALL_CLIENTS_VALUE = "__ALL_CLIENTS__"; // Define a constant for the "all clients" value
+
 const MentionsLogPage: React.FC = () => {
   const [mentions, setMentions] = useState<Mention[]>(initialMentionsData);
-  const [filterClientId, setFilterClientId] = useState<string>('');
+  const [filterClientId, setFilterClientId] = useState<string>(ALL_CLIENTS_VALUE); // Initialize with the "all" value
   const [filterKeyword, setFilterKeyword] = useState<string>('');
 
   const filteredMentions = useMemo(() => {
     return mentions
       .filter(mention => 
-        // Filter by analyst's clients (simulated)
         mockAnalystClients.some(client => client.id === mention.clientId)
       )
       .filter(mention => 
-        filterClientId ? mention.clientId === filterClientId : true
+        filterClientId === ALL_CLIENTS_VALUE ? true : mention.clientId === filterClientId
       )
       .filter(mention => 
         filterKeyword ? mention.keywordDetected.toLowerCase().includes(filterKeyword.toLowerCase()) : true
       )
-      .sort((a, b) => b.detectedAt.getTime() - a.detectedAt.getTime()); // Sort by newest first
+      .sort((a, b) => b.detectedAt.getTime() - a.detectedAt.getTime()); 
   }, [mentions, filterClientId, filterKeyword]);
 
   const toggleReviewedStatus = (mentionId: string) => {
@@ -150,7 +151,7 @@ const MentionsLogPage: React.FC = () => {
                 <SelectValue placeholder="Filtrar por Cliente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos mis Clientes</SelectItem>
+                <SelectItem value={ALL_CLIENTS_VALUE}>Todos mis Clientes</SelectItem>
                 {mockAnalystClients.map(client => (
                   <SelectItem key={client.id} value={client.id}>{client.companyName}</SelectItem>
                 ))}
@@ -164,7 +165,6 @@ const MentionsLogPage: React.FC = () => {
               onChange={(e) => setFilterKeyword(e.target.value)}
             />
           </div>
-          {/* Date filter can be added here */}
         </CardContent>
       </Card>
 
