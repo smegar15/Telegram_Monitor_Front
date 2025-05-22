@@ -55,4 +55,19 @@ export interface Mention {
   isReviewed: boolean;
 }
 
+export type NotificationMedium = 'email' | 'telegram' | 'inApp';
+export type NotificationSentType = 'Mención Crítica' | 'Resumen Diario' | 'Nuevo Canal Detectado' | 'Alerta General';
+export type NotificationStatus = 'enviada' | 'fallida' | 'pendiente';
+
+export interface SentNotification {
+  id: string;
+  clientId: string;
+  clientName: string;
+  notificationType: NotificationSentType;
+  medium: NotificationMedium;
+  contentPreview: string;
+  sentAt: Date;
+  status: NotificationStatus;
+}
+
 // Add more types as needed

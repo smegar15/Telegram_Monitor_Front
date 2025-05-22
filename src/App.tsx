@@ -19,7 +19,8 @@ import ClientAssignmentsPage from "./pages/admin/ClientAssignmentsPage";
 import AnalystOverviewPage from "./pages/analyst/AnalystOverviewPage";
 import AssignedClientsPage from "./pages/analyst/AssignedClientsPage";
 import MentionsLogPage from "./pages/analyst/MentionsLogPage";
-import AnalystClientDetailPage from "./pages/analyst/AnalystClientDetailPage"; // Import the new page
+import AnalystClientDetailPage from "./pages/analyst/AnalystClientDetailPage";
+import SentNotificationsLogPage from "./pages/analyst/SentNotificationsLogPage"; // Import the new page
 
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ const App = () => {
               <Route path="overview" element={<AnalystOverviewPage />} />
               <Route path="assigned-clients" element={<AssignedClientsPage />} />
               <Route path="mentions-log" element={<MentionsLogPage />} />
+              <Route path="sent-notifications" element={<SentNotificationsLogPage />} /> {/* New route */}
               <Route path="client/:clientId/details" element={<AnalystClientDetailPage />} /> 
               <Route index element={<Navigate to="overview" replace />} />
             </Route>
