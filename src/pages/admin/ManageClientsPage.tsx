@@ -27,19 +27,42 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Card } from '@/components/ui/card';
-import { PlusCircle, Edit, Trash2 } from 'lucide-react';
-import { Client } from '@/types';
+import { PlusCircle, Edit, Trash2, Bell } from 'lucide-react'; // Added Bell icon
+import { Client, NotificationSettings } from '@/types'; // Added NotificationSettings
 import ClientForm, { ClientFormData } from '@/components/admin/ClientForm';
+import NotificationSettingsForm, { NotificationSettingsFormData } from '@/components/admin/NotificationSettingsForm'; // Import NotificationSettingsForm
 import { showSuccess, showError } from '@/utils/toast';
 
 // Mock data - en una aplicación real, esto vendría de una API
 const initialClients: Client[] = [
-  { id: 'c1', companyName: 'Tech Solutions Inc.', contactFirstName: 'Maria', contactLastName: 'Lopez', contactEmail: 'maria.lopez@techsolutions.com', assignedAnalystId: '1' },
-  { id: 'c2', companyName: 'Innovate Hub', contactFirstName: 'Carlos', contactLastName: 'Ruiz', contactEmail: 'carlos.ruiz@innovatehub.io' },
-  { id: 'c3', companyName: 'Global Connect', contactFirstName: 'Sofia', contactLastName: 'Chen', contactEmail: 'sofia.chen@globalconnect.net', assignedAnalystId: '2' },
+  { 
+    id: 'c1', 
+    companyName: 'Tech Solutions Inc.', 
+    contactFirstName: 'Maria', 
+    contactLastName: 'Lopez', 
+    contactEmail: 'maria.lopez@techsolutions.com', 
+    assignedAnalystId: '1',
+    notificationSettings: { mediums: ['email'], frequency: 'daily', types: ['allMentions', 'criticalMentions'] }
+  },
+  { 
+    id: 'c2', 
+    companyName: 'Innovate Hub', 
+    contactFirstName: 'Carlos', 
+    contactLastName: 'Ruiz', 
+    contactEmail: 'carlos.ruiz@innovatehub.io' 
+  },
+  { 
+    id: 'c3', 
+    companyName: 'Global Connect', 
+    contactFirstName: 'Sofia', 
+    contactLastName: 'Chen', 
+    contactEmail: 'sofia.chen@globalconnect.net', 
+    assignedAnalystId: '2',
+    notificationSettings: { mediums: ['telegram', 'inApp'], frequency: 'immediate', types: ['criticalMentions'] }
+  },
 ];
 
-// Mock analyst data for display purposes (in a real app, you'd fetch this or join data)
+// Mock analyst data for display purposes
 const mockAnalysts: { [key: string]: string } = {
   '1': 'Juan Pérez',
   '2': 'Ana García',
@@ -51,18 +74,18 @@ const ManageClientsPage: React.FC = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isNotificationSettingsDialogOpen, setIsNotificationSettingsDialogOpen] = useState(false); // New state
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const handleCreateClient = (data: ClientFormData) => {
     const newClient: Client = {
-      id: `c${Date.now()}`, // Simple ID generation
+      id: `c${Date.now()}`,
       ...data,
-      // assignedAnalystId will be handled in assignments section
+      notificationSettings: { mediums: ['email'], frequency: 'daily', types: ['allMentions'] } // Default settings
     };
     setClients((prevClients) => [...prevClients, newClient]);
     setIsCreateDialogOpen(false);
     showSuccess('Cliente creado exitosamente.');
-    console.log('Created client:', newClient);
   };
 
   const handleEditClient = (data: ClientFormData) => {
@@ -75,7 +98,6 @@ const ManageClientsPage: React.FC = () => {
     setIsEditDialogOpen(false);
     setSelectedClient(null);
     showSuccess('Cliente actualizado exitosamente.');
-    console.log('Updated client:', { ...selectedClient, ...data });
   };
 
   const handleDeleteClient = () => {
@@ -84,7 +106,19 @@ const ManageClientsPage: React.FC = () => {
     setIsDeleteDialogOpen(false);
     setSelectedClient(null);
     showSuccess('Cliente eliminado exitosamente.');
-    console.log('Deleted client ID:', selectedClient.id);
+  };
+
+  const handleSaveNotificationSettings = (data: NotificationSettingsFormData) => {
+    if (!selectedClient) return;
+    setClients((prevClients) =>
+      prevClients.map((client) =>
+        client.id === selectedClient.id ? { ...client, notificationSettings: data } : client
+      )
+    );
+    setIsNotificationSettingsDialogOpen(false);
+    setSelectedClient(null);
+    showSuccess('Configuración de notificaciones guardada exitosamente.');
+    console.log('Saved notification settings for client:', selectedClient.id, data);
   };
 
   const openEditDialog = (client: Client) => {
@@ -95,6 +129,11 @@ const ManageClientsPage: React.FC = () => {
   const openDeleteDialog = (client: Client) => {
     setSelectedClient(client);
     setIsDeleteDialogOpen(true);
+  };
+
+  const openNotificationSettingsDialog = (client: Client) => {
+    setSelectedClient(client);
+    setIsNotificationSettingsDialogOpen(true);
   };
 
   return (
@@ -128,7 +167,6 @@ const ManageClientsPage: React.FC = () => {
             <TableRow>
               <TableHead>Empresa</TableHead>
               <TableHead>Nombre Contacto</TableHead>
-              <TableHead>Apellidos Contacto</TableHead>
               <TableHead>Email Contacto</TableHead>
               <TableHead>Analista Asignado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
@@ -139,17 +177,19 @@ const ManageClientsPage: React.FC = () => {
               clients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell>{client.companyName}</TableCell>
-                  <TableCell>{client.contactFirstName}</TableCell>
-                  <TableCell>{client.contactLastName}</TableCell>
+                  <TableCell>{client.contactFirstName} {client.contactLastName}</TableCell>
                   <TableCell>{client.contactEmail}</TableCell>
                   <TableCell>
                     {client.assignedAnalystId ? mockAnalysts[client.assignedAnalystId] || 'N/A' : 'No asignado'}
                   </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(client)}>
+                  <TableCell className="text-right space-x-1">
+                    <Button variant="ghost" size="icon" onClick={() => openNotificationSettingsDialog(client)} title="Configurar Notificaciones">
+                      <Bell className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(client)} title="Editar Cliente">
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(client)}>
+                    <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(client)} title="Eliminar Cliente">
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
@@ -157,7 +197,7 @@ const ManageClientsPage: React.FC = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center h-24">
+                <TableCell colSpan={5} className="text-center h-24"> {/* Updated colSpan */}
                   No hay clientes registrados.
                 </TableCell>
               </TableRow>
@@ -213,6 +253,31 @@ const ManageClientsPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Notification Settings Dialog */}
+      <Dialog open={isNotificationSettingsDialogOpen} onOpenChange={(isOpen) => {
+          setIsNotificationSettingsDialogOpen(isOpen);
+          if (!isOpen) setSelectedClient(null);
+      }}>
+        <DialogContent className="sm:max-w-lg"> {/* Adjusted width for more content */}
+          <DialogHeader>
+            <DialogTitle>Configurar Notificaciones para {selectedClient?.companyName}</DialogTitle>
+            <DialogDescription>
+              Ajuste las preferencias de notificación para este cliente.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedClient && (
+            <NotificationSettingsForm
+              onSubmit={handleSaveNotificationSettings}
+              onCancel={() => {
+                setIsNotificationSettingsDialogOpen(false);
+                setSelectedClient(null);
+              }}
+              defaultValues={selectedClient.notificationSettings || { mediums: [], frequency: 'daily', types: [] }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
