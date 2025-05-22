@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"; // Removed Outlet as it's handled in layouts
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index"; 
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
@@ -19,10 +19,7 @@ import ClientAssignmentsPage from "./pages/admin/ClientAssignmentsPage";
 import AnalystOverviewPage from "./pages/analyst/AnalystOverviewPage";
 import AssignedClientsPage from "./pages/analyst/AssignedClientsPage";
 import MentionsLogPage from "./pages/analyst/MentionsLogPage";
-// Placeholder for client detail/management page for analyst
-const AnalystClientDetailPagePlaceholder: React.FC<{ clientId?: string }> = ({ clientId }) => (
-  <div>Placeholder para gestionar cliente ID: {clientId || "N/A"} por el Analista. Aquí irían palabras clave, canales, etc.</div>
-);
+import AnalystClientDetailPage from "./pages/analyst/AnalystClientDetailPage"; // Import the new page
 
 
 const queryClient = new QueryClient();
@@ -80,8 +77,7 @@ const App = () => {
               <Route path="overview" element={<AnalystOverviewPage />} />
               <Route path="assigned-clients" element={<AssignedClientsPage />} />
               <Route path="mentions-log" element={<MentionsLogPage />} />
-              {/* Placeholder route for client detail, will be expanded later */}
-              <Route path="client/:clientId/details" element={<AnalystClientDetailPagePlaceholder />} /> 
+              <Route path="client/:clientId/details" element={<AnalystClientDetailPage />} /> 
               <Route index element={<Navigate to="overview" replace />} />
             </Route>
 

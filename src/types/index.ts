@@ -11,6 +11,11 @@ export interface NotificationSettings {
   types: Array<'allMentions' | 'criticalMentions' | 'newChannels'>;
 }
 
+export interface Keyword {
+  id: string;
+  term: string;
+}
+
 export interface Client {
   id:string;
   companyName: string;
@@ -19,6 +24,7 @@ export interface Client {
   contactEmail: string;
   assignedAnalystId?: string | null;
   notificationSettings?: NotificationSettings;
+  keywords?: Keyword[];
 }
 
-// Add more types as needed, e.g., for Keywords, Channels, Assignments, etc.
+// Add more types as needed, e.g., for Channels, Assignments, etc.
