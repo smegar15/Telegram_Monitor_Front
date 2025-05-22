@@ -28,18 +28,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Client, Keyword, Channel, ChannelFormData as ChannelFormDataType } from '@/types'; // Renamed ChannelFormData to avoid conflict
+import { Client, Keyword, Channel, NotificationSettings } from '@/types';
 import KeywordForm, { KeywordFormData } from '@/components/analyst/KeywordForm';
-import ChannelForm, { ChannelFormData } from '@/components/analyst/ChannelForm'; // Ensure this path is correct
+import ChannelForm, { ChannelFormData } from '@/components/analyst/ChannelForm';
+import NotificationSettingsForm, { NotificationSettingsFormData } from '@/components/admin/NotificationSettingsForm'; // Reusing admin form
 import { showSuccess, showError } from '@/utils/toast';
-import { PlusCircle, Edit, Trash2, ArrowLeft } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, ArrowLeft, Bell, Settings } from 'lucide-react';
 
 // Mock data for all clients
 const initialClientsData: Client[] = [
     { 
       id: 'c1', companyName: 'Tech Solutions Inc.', contactFirstName: 'Maria', contactLastName: 'Lopez', contactEmail: 'maria.lopez@techsolutions.com', assignedAnalystId: '1', 
       keywords: [{id: 'k1', term: 'TechSolutions'}, {id: 'k2', term: 'Innovación'}],
-      channels: [{id: 'ch1', name: 'Tech News Global', channelId: '@technewsglobal', link: 'https://t.me/technewsglobal', type: 'public'}]
+      channels: [{id: 'ch1', name: 'Tech News Global', channelId: '@technewsglobal', link: 'https://t.me/technewsglobal', type: 'public'}],
+      notificationSettings: { mediums: ['email'], frequency: 'daily', types: ['allMentions'] }
     },
     { 
       id: 'c2', companyName: 'Innovate Hub', contactFirstName: 'Carlos', contactLastName: 'Ruiz', contactEmail: 'carlos.ruiz@innovatehub.io', assignedAnalystId: '2', 
@@ -47,7 +49,8 @@ const initialClientsData: Client[] = [
       channels: [
         {id: 'ch2', name: 'Startup World', channelId: '@startupworld', link: 'https://t.me/startupworld', type: 'public'},
         {id: 'ch3', name: 'Private Tech Group', channelId: '-1001234567890', link: 'https://t.me/joinchat/AAAAAE...', type: 'private'}
-      ]
+      ],
+      notificationSettings: { mediums: ['telegram', 'inApp'], frequency: 'immediate', types: ['criticalMentions'] }
     },
     { id: 'c3', companyName: 'Global Connect', contactFirstName: 'Sofia', contactLastName: 'Chen', contactEmail: 'sofia.chen@globalconnect.net', assignedAnalystId: '2', keywords: [], channels: [] },
     { id: 'c4', companyName: 'Data Corp', contactFirstName: 'Pedro', contactLastName: 'Jimenez', contactEmail: 'pedro.j@datacorp.co', assignedAnalystId: null },
@@ -74,6 +77,9 @@ const AnalystClientDetailPage: React.FC = () => {
   const [isEditChannelDialogOpen, setIsEditChannelDialogOpen] = useState(false);
   const [isDeleteChannelDialogOpen, setIsDeleteChannelDialogOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+
+  // Notification Settings State
+  const [isNotificationSettingsDialogOpen, setIsNotificationSettingsDialogOpen] = useState(false);
 
 
   if (!client) {
@@ -151,6 +157,15 @@ const AnalystClientDetailPage: React.FC = () => {
   const openEditChannelDialog = (channel: Channel) => { setSelectedChannel(channel); setIsEditChannelDialogOpen(true); };
   const openDeleteChannelDialog = (channel: Channel) => { setSelectedChannel(channel); setIsDeleteChannelDialogOpen(true); };
 
+  // Notification Settings Handler
+  const handleSaveNotificationSettings = (data: NotificationSettingsFormData) => {
+    const updatedClient = { ...client, notificationSettings: data };
+    setClients(prevClients => prevClients.map(c => c.id === clientId ? updatedClient : c));
+    setIsNotificationSettingsDialogOpen(false);
+    showSuccess('Configuración de notificaciones guardada exitosamente.');
+    console.log('Saved notification settings for client:', client.id, data);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -209,7 +224,7 @@ const AnalystClientDetailPage: React.FC = () => {
           </div>
           <Dialog open={isAddChannelDialogOpen} onOpenChange={setIsAddChannelDialogOpen}>
             <DialogTrigger asChild><Button size="sm"><PlusCircle className="mr-2 h-4 w-4" /> Añadir Canal</Button></DialogTrigger>
-            <DialogContent className="sm:max-w-md"> {/* Slightly wider for more fields */}
+            <DialogContent className="sm:max-w-md">
               <DialogHeader><DialogTitle>Añadir Nuevo Canal</DialogTitle></DialogHeader>
               <ChannelForm onSubmit={handleAddChannel} onCancel={() => setIsAddChannelDialogOpen(false)} />
             </DialogContent>
@@ -246,6 +261,45 @@ const AnalystClientDetailPage: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Notification Settings Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>Configuración de Notificaciones</CardTitle>
+                <CardDescription>Ajuste las preferencias de notificación para este cliente.</CardDescription>
+            </div>
+            <Dialog open={isNotificationSettingsDialogOpen} onOpenChange={setIsNotificationSettingsDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                        <Settings className="mr-2 h-4 w-4" /> Configurar
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Configurar Notificaciones para {client.companyName}</DialogTitle>
+                    </DialogHeader>
+                    <NotificationSettingsForm
+                        onSubmit={handleSaveNotificationSettings}
+                        onCancel={() => setIsNotificationSettingsDialogOpen(false)}
+                        defaultValues={client.notificationSettings || { mediums: [], frequency: 'daily', types: [] }}
+                    />
+                </DialogContent>
+            </Dialog>
+        </CardHeader>
+        <CardContent>
+            {client.notificationSettings ? (
+                <div className="space-y-2 text-sm text-muted-foreground">
+                    <p><strong>Medios:</strong> {client.notificationSettings.mediums.join(', ') || 'No especificado'}</p>
+                    <p><strong>Frecuencia:</strong> {client.notificationSettings.frequency || 'No especificado'}</p>
+                    <p><strong>Tipos:</strong> {client.notificationSettings.types.join(', ') || 'No especificado'}</p>
+                </div>
+            ) : (
+                <p className="text-sm text-muted-foreground">No se ha configurado la notificación para este cliente.</p>
+            )}
+        </CardContent>
+      </Card>
+
+
       {/* Edit Keyword Dialog */}
       <Dialog open={isEditKeywordDialogOpen} onOpenChange={(isOpen) => { setIsEditKeywordDialogOpen(isOpen); if (!isOpen) setSelectedKeyword(null); }}>
         <DialogContent className="sm:max-w-[425px]">
@@ -277,13 +331,6 @@ const AnalystClientDetailPage: React.FC = () => {
           <AlertDialogFooter><AlertDialogCancel onClick={() => setSelectedChannel(null)}>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleDeleteChannel} className="bg-destructive hover:bg-destructive/90">Confirmar</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
-      {/* Placeholder for Client-Specific Notification Settings (Analyst might view or edit based on permissions) */}
-      <Card>
-        <CardHeader><CardTitle>Configuración de Notificaciones (Próximamente)</CardTitle></CardHeader>
-        <CardContent><p className="text-muted-foreground">Aquí podrá ajustar las notificaciones específicas para este cliente.</p></CardContent>
-      </Card>
-
     </div>
   );
 };
